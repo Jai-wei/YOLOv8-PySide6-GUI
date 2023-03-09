@@ -1,0 +1,2 @@
+# YOLOv8-PySide6-GUI
+YOLOv8 GUI By PySide6
