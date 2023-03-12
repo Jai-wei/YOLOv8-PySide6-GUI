@@ -18,7 +18,7 @@ class Ui_Form(object):
         Form.setMinimumSize(QtCore.QSize(0, 40))
         Form.setMaximumSize(QtCore.QSize(16777215, 41))
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap(":/img/icon/实时视频流解析.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon.addPixmap(QtGui.QPixmap(":/img/None.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         Form.setWindowIcon(icon)
         Form.setStyleSheet("#Form{background:rgba(120,120,120,255)}")
         self.horizontalLayout = QtWidgets.QHBoxLayout(Form)
