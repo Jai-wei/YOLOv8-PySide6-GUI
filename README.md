@@ -15,7 +15,7 @@
 
 ## Video
 - [BiliBili~YoloSide V2.0](https://www.bilibili.com/video/BV1Cb411f7cw/?spm_id_from=333.999.0.0)
-- Youtube is uploading...
+- [Youtube~YoloSide V2.0](https://www.youtube.com/watch?v=auJLVrt7ImQ)
 
 ## References
 - [PyQt5-YOLOv5](https://github.com/Javacr/PyQt5-YOLOv5)
