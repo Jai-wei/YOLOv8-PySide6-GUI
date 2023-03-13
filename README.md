@@ -17,6 +17,14 @@
 - [BiliBili~YoloSide V2.0](https://www.bilibili.com/video/BV1Cb411f7cw/?spm_id_from=333.999.0.0)
 - [Youtube~YoloSide V2.0](https://www.youtube.com/watch?v=auJLVrt7ImQ)
 
+## To Do
+
+- [ ] The input source supports camera and RTSP (if you need this function urgently, you can modify it according to the `chosen_cam`、`chose_rtsp`、`load_rtsp` function in `mian.py`)
+- [ ] Graph showing changes in target quantity
+- [ ] Target tracking
+- [ ] Instance segmentation
+- [ ] Monitor system hardware usage
+
 ## References
 - [PyQt5-YOLOv5](https://github.com/Javacr/PyQt5-YOLOv5)
 - [ultralytics](https://github.com/ultralytics/ultralytics)
