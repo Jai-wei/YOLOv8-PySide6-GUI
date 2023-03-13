@@ -321,7 +321,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.Qtimer_ModelBox.timeout.connect(self.ModelBoxRefre)
         self.Qtimer_ModelBox.start(2000)
 
-        # Yolo-v8线程
+        # Yolo-v8 thread
         self.yolo_predict = YoloPredictor()                           # Create a Yolo instance
         self.select_model = self.model_box.currentText()                   # default model
         self.yolo_predict.new_model_name = "./models/%s" % self.select_model  
@@ -596,13 +596,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     # Terminate button and associated state
     def stop(self):
         if self.yolo_thread.isRunning():
-            self.yolo_thread.quit()         # 结束进程
+            self.yolo_thread.quit()         # end thread
         self.yolo_predict.stop_dtc = True
-        self.run_button.setChecked(False)    # 开始键恢复
-        self.save_res_button.setEnabled(True)   # 能够使用保存按钮
-        self.save_txt_button.setEnabled(True)   # 能够使用保存按钮
-        self.pre_video.clear()           # 清空图像显示
-        self.res_video.clear()           # 清空图像显示
+        self.run_button.setChecked(False)    # start key recovery
+        self.save_res_button.setEnabled(True)   # Ability to use the save button
+        self.save_txt_button.setEnabled(True)   # Ability to use the save button
+        self.pre_video.clear()           # clear image display
+        self.res_video.clear()           # clear image display
         self.progress_bar.setValue(0)
         self.Class_num.setText('--')
         self.Target_num.setText('--')
@@ -611,9 +611,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     # Change detection parameters
     def change_val(self, x, flag):
         if flag == 'iou_spinbox':
-            self.iou_slider.setValue(int(x*100))    # box值变化，改变slider
+            self.iou_slider.setValue(int(x*100))    # The box value changes, changing the slider
         elif flag == 'iou_slider':
-            self.iou_spinbox.setValue(x/100)        # slider值变化，改变box
+            self.iou_spinbox.setValue(x/100)        # The slider value changes, changing the box
             self.show_status('IOU Threshold: %s' % str(x/100))
             self.yolo_predict.iou_thres = x/100
         elif flag == 'conf_spinbox':
@@ -627,7 +627,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         elif flag == 'speed_slider':
             self.speed_spinbox.setValue(x)
             self.show_status('Delay: %s ms' % str(x))
-            self.yolo_predict.speed_thres = x  # 单位是ms
+            self.yolo_predict.speed_thres = x  # ms
             
     # change model
     def change_model(self,x):
@@ -652,7 +652,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         pt_list = os.listdir('./models')
         pt_list = [file for file in pt_list if file.endswith('.pt')]
         pt_list.sort(key=lambda x: os.path.getsize('./models/' + x))
-        # 必须排完序以后再比较，不然一直刷新列表
+        # It must be sorted before comparing, otherwise the list will be refreshed all the time
         if pt_list != self.pt_list:
             self.pt_list = pt_list
             self.model_box.clear()
