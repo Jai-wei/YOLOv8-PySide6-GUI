@@ -3135,7 +3135,6 @@ color: rgba(0, 0, 0, 140);</string>
  </widget>
  <resources>
   <include location="resources.qrc"/>
-  <include location="E:/QQ/2567366108/FileRecv/pyqt5仿交易软件无边框拉伸/resources.qrc"/>
  </resources>
  <connections/>
 </ui>
