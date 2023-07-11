@@ -8,8 +8,8 @@
 - `pip install pyside6==6.4.2`
 - `python main.py`
 
-##### !!The corresponding version of the library must be installed
-##### !!Otherwise, the following error will appear:`not enough values to unpack (expected 5, got 4)`
+#### !!The corresponding version of the library must be installed
+#### !!Otherwise, the following error will appear:`not enough values to unpack (expected 5, got 4)`
 
 ## Notice
 - `ultralytics` follows the `GPL-3.0`, if you need commercial use, you need to obtain its license.
