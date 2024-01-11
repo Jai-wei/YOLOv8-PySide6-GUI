@@ -1,12 +1,12 @@
-from ultralytics.yolo.engine.predictor import BasePredictor
-from ultralytics.yolo.engine.results import Results
-from ultralytics.yolo.utils import DEFAULT_CFG, LOGGER, SETTINGS, callbacks, ops
-from ultralytics.yolo.utils.plotting import Annotator, colors, save_one_box
-from ultralytics.yolo.utils.torch_utils import smart_inference_mode
-from ultralytics.yolo.utils.files import increment_path
-from ultralytics.yolo.utils.checks import check_imshow
-from ultralytics.yolo.cfg import get_cfg
-from PySide6.QtWidgets import QApplication, QMainWindow, QFileDialog, QMenu
+from ultralytics.engine.predictor import BasePredictor
+from ultralytics.engine.results import Results
+from ultralytics.utils import DEFAULT_CFG, LOGGER, SETTINGS, callbacks, ops
+from ultralytics.utils.plotting import Annotator, colors, save_one_box
+from ultralytics.utils.torch_utils import smart_inference_mode
+from ultralytics.utils.files import increment_path
+from ultralytics.utils.checks import check_imshow
+from ultralytics.cfg import get_cfg
+from PySide6.QtWidgets import QApplication, QMainWindow, QFileDialog, QMenu, QDialog
 from PySide6.QtGui import QImage, QPixmap, QColor
 from PySide6.QtCore import QTimer, QThread, Signal, QObject, QPoint, Qt
 from ui.CustomMessageBox import MessageBox
@@ -26,17 +26,17 @@ import os
 
 
 class YoloPredictor(BasePredictor, QObject):
-    yolo2main_pre_img = Signal(np.ndarray)   # raw image signal
-    yolo2main_res_img = Signal(np.ndarray)   # test result signal
-    yolo2main_status_msg = Signal(str)       # Detecting/pausing/stopping/testing complete/error reporting signal
-    yolo2main_fps = Signal(str)              # fps
-    yolo2main_labels = Signal(dict)          # Detected target results (number of each category)
-    yolo2main_progress = Signal(int)         # Completeness
-    yolo2main_class_num = Signal(int)        # Number of categories detected
-    yolo2main_target_num = Signal(int)       # Targets detected
+    yolo2main_pre_img = Signal(np.ndarray)  # raw image signal
+    yolo2main_res_img = Signal(np.ndarray)  # test result signal
+    yolo2main_status_msg = Signal(str)  # Detecting/pausing/stopping/testing complete/error reporting signal
+    yolo2main_fps = Signal(str)  # fps
+    yolo2main_labels = Signal(dict)  # Detected target results (number of each category)
+    yolo2main_progress = Signal(int)  # Completeness
+    yolo2main_class_num = Signal(int)  # Number of categories detected
+    yolo2main_target_num = Signal(int)  # Targets detected
 
-    def __init__(self, cfg=DEFAULT_CFG, overrides=None): 
-        super(YoloPredictor, self).__init__() 
+    def __init__(self, cfg=DEFAULT_CFG, overrides=None):
+        super(YoloPredictor, self).__init__()
         QObject.__init__(self)
 
         self.args = get_cfg(cfg, overrides)
@@ -48,19 +48,18 @@ class YoloPredictor(BasePredictor, QObject):
             self.args.show = check_imshow(warn=True)
 
         # GUI args
-        self.used_model_name = None      # The detection model name to use
-        self.new_model_name = None       # Models that change in real time
-        self.source = ''                 # input source
-        self.stop_dtc = False            # Termination detection
-        self.continue_dtc = True         # pause   
-        self.save_res = False            # Save test results
-        self.save_txt = False            # save label(txt) file
-        self.iou_thres = 0.45            # iou
-        self.conf_thres = 0.25           # conf
-        self.speed_thres = 10            # delay, ms
-        self.labels_dict = {}            # return a dictionary of results
-        self.progress_value = 0          # progress bar
-    
+        self.used_model_name = None  # The detection model name to use
+        self.new_model_name = None  # Models that change in real time
+        self.source = ''  # input source
+        self.stop_dtc = False  # Termination detection
+        self.continue_dtc = True  # pause
+        self.save_res = False  # Save test results
+        self.save_txt = False  # save label(txt) file
+        self.iou_thres = 0.45  # iou
+        self.conf_thres = 0.25  # conf
+        self.speed_thres = 10  # delay, ms
+        self.labels_dict = {}  # return a dictionary of results
+        self.progress_value = 0  # progress bar
 
         # Usable if setup is done
         self.model = None
@@ -83,7 +82,7 @@ class YoloPredictor(BasePredictor, QObject):
             if self.args.verbose:
                 LOGGER.info('')
 
-            # set model    
+            # set model
             self.yolo2main_status_msg.emit('Loding Model...')
             if not self.model:
                 self.setup_model(self.new_model_name)
@@ -101,14 +100,13 @@ class YoloPredictor(BasePredictor, QObject):
                 self.model.warmup(imgsz=(1 if self.model.pt or self.model.triton else self.dataset.bs, 3, *self.imgsz))
                 self.done_warmup = True
 
-            self.seen, self.windows, self.dt, self.batch = 0, [], (ops.Profile(), ops.Profile(), ops.Profile()), None
+            self.seen, self.windows, self.batch, profilers = 0, [], None, (ops.Profile(), ops.Profile(), ops.Profile())
 
             # start detection
             # for batch in self.dataset:
 
-
-            count = 0                       # run location frame
-            start_time = time.time()        # used to calculate the frame rate
+            count = 0  # run location frame
+            start_time = time.time()  # used to calculate the frame rate
             batch = iter(self.dataset)
             while True:
                 # Termination detection
@@ -117,13 +115,13 @@ class YoloPredictor(BasePredictor, QObject):
                         self.vid_writer[-1].release()  # release final video writer
                     self.yolo2main_status_msg.emit('Detection terminated!')
                     break
-                
+
                 # Change the model midway
-                if self.used_model_name != self.new_model_name:  
-                    # self.yolo2main_status_msg.emit('Change Model...')
+                if self.used_model_name != self.new_model_name:
+                    self.yolo2main_status_msg.emit('Change Model...')
                     self.setup_model(self.new_model_name)
                     self.used_model_name = self.new_model_name
-                
+
                 # pause switch
                 if self.continue_dtc:
                     # time.sleep(0.001)
@@ -131,42 +129,41 @@ class YoloPredictor(BasePredictor, QObject):
                     batch = next(self.dataset)  # next data
 
                     self.batch = batch
-                    path, im, im0s, vid_cap, s = batch
-                    visualize = increment_path(self.save_dir / Path(path).stem, mkdir=True) if self.args.visualize else False
+                    path, im0s, vid_cap, s = batch
+                    visualize = increment_path(self.save_dir / Path(path).stem,
+                                               mkdir=True) if self.args.visualize else False
 
                     # Calculation completion and frame rate (to be optimized)
-                    count += 1              # frame count +1
+                    count += 1  # frame count +1
                     if vid_cap:
-                        all_count = vid_cap.get(cv2.CAP_PROP_FRAME_COUNT)   # total frames
+                        all_count = vid_cap.get(cv2.CAP_PROP_FRAME_COUNT)  # total frames
                     else:
                         all_count = 1
-                    self.progress_value = int(count/all_count*1000)         # progress bar(0~1000)
-                    if count % 5 == 0 and count >= 5:                     # Calculate the frame rate every 5 frames
-                        self.yolo2main_fps.emit(str(int(5/(time.time()-start_time))))
+                    self.progress_value = int(count / all_count * 1000)  # progress bar(0~1000)
+                    if count % 5 == 0 and count >= 5:  # Calculate the frame rate every 5 frames
+                        self.yolo2main_fps.emit(str(int(5 / (time.time() - start_time))))
                         start_time = time.time()
-                    
-                    # preprocess 
-                    with self.dt[0]:
-                        im = self.preprocess(im)
-                        if len(im.shape) == 3:
-                            im = im[None]  # expand for batch dim
-                    # inference 
-                    with self.dt[1]:
+
+                    # Preprocess
+                    with profilers[0]:
+                        im = self.preprocess(im0s)
+                    # inference
+                    with profilers[1]:
                         preds = self.model(im, augment=self.args.augment, visualize=visualize)
-                    # postprocess 
-                    with self.dt[2]:
+
+                    # postprocess
+                    with profilers[2]:
                         self.results = self.postprocess(preds, im, im0s)
 
-                    # visualize, save, write results  
-                    n = len(im)     # To be improved: support multiple img
+                    # visualize, save, write results
+                    n = len(im)  # To be improved: support multiple img
                     for i in range(n):
                         self.results[i].speed = {
-                            'preprocess': self.dt[0].dt * 1E3 / n,
-                            'inference': self.dt[1].dt * 1E3 / n,
-                            'postprocess': self.dt[2].dt * 1E3 / n}
-                        p, im0 = (path[i], im0s[i].copy()) if self.source_type.webcam or self.source_type.from_img \
-                            else (path, im0s.copy())
-                        p = Path(p)     # the source dir
+                            'preprocess': profilers[0].dt * 1E3 / n,
+                            'inference': profilers[1].dt * 1E3 / n,
+                            'postprocess': profilers[2].dt * 1E3 / n}
+                        p, im0 = path[i], None if self.source_type.tensor else im0s[i].copy()
+                        p = Path(p)
 
                         # s:::   video 1/1 (6/6557) 'path':
                         # must, to get boxs\labels
@@ -215,13 +212,17 @@ class YoloPredictor(BasePredictor, QObject):
 
 
     def get_annotator(self, img):
-        return Annotator(img, line_width=self.args.line_thickness, example=str(self.model.names))
+        return Annotator(img, line_width=2, example=str(self.model.names))
 
-    def preprocess(self, img):
-        img = torch.from_numpy(img).to(self.model.device)
-        img = img.half() if self.model.fp16 else img.float()  # uint8 to fp16/32
-        img /= 255  # 0 - 255 to 0.0 - 1.0
-        return img
+    def preprocess(self, im):
+        im = np.stack(self.pre_transform(im))
+        im = im[..., ::-1].transpose((0, 3, 1, 2))  # BGR to RGB, BHWC to BCHW, (n, 3, h, w)
+        im = np.ascontiguousarray(im)  # contiguous
+        im = torch.from_numpy(im)
+        im = im.to(self.device)
+        im = im.half() if self.model.fp16 else im.float()  # uint8 to fp16/32
+        im /= 255  # 0 - 255 to 0.0 - 1.0
+        return im
 
     def postprocess(self, preds, img, orig_img):
         ### important
@@ -237,11 +238,31 @@ class YoloPredictor(BasePredictor, QObject):
             orig_img = orig_img[i] if isinstance(orig_img, list) else orig_img
             shape = orig_img.shape
             pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], shape).round()
-            path, _, _, _, _ = self.batch
+            path, _, _, _ = self.batch
             img_path = path[i] if isinstance(path, list) else path
             results.append(Results(orig_img=orig_img, path=img_path, names=self.model.names, boxes=pred))
         # print(results)
         return results
+
+    def save_preds(self, vid_cap, idx, save_path):
+        im0 = self.annotator.result()
+        # save imgs
+        if self.dataset.mode == 'image':
+            cv2.imwrite(save_path, im0)
+        else:  # 'video' or 'stream'
+            if self.vid_path[idx] != save_path:  # new video
+                self.vid_path[idx] = save_path
+                if isinstance(self.vid_writer[idx], cv2.VideoWriter):
+                    self.vid_writer[idx].release()  # release previous video writer
+                if vid_cap:  # video
+                    fps = int(vid_cap.get(cv2.CAP_PROP_FPS))  # integer required, floats produce error in MP4 codec
+                    w = int(vid_cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+                    h = int(vid_cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+                else:  # stream
+                    fps, w, h = 30, im0.shape[1], im0.shape[0]
+                save_path = str(Path(save_path).with_suffix('.mp4'))  # force *.mp4 suffix on results videos
+                self.vid_writer[idx] = cv2.VideoWriter(save_path, cv2.VideoWriter_fourcc(*'mp4v'), fps, (w, h))
+            self.vid_writer[idx].write(im0)
 
     def write_results(self, idx, results, batch):
         p, im, im0 = batch
@@ -263,13 +284,12 @@ class YoloPredictor(BasePredictor, QObject):
         det = results[idx].boxes  # TODO: make boxes inherit from tensors
 
         if len(det) == 0:
-            return f'{log_string}(no detections), ' # if no, send this~~
+            return f'{log_string}(no detections), '  # if no, send this~~
 
         for c in det.cls.unique():
             n = (det.cls == c).sum()  # detections per class
-            log_string += f"{n}~{self.model.names[int(c)]},"   #   {'s' * (n > 1)}, "   # don't add 's'
+            log_string += f"{n}~{self.model.names[int(c)]},"  # {'s' * (n > 1)}, "   # don't add 's'
         # now log_string is the classes 👆
-
 
         # write
         for d in reversed(det):
@@ -282,7 +302,7 @@ class YoloPredictor(BasePredictor, QObject):
             if self.save_res or self.args.save_crop or self.args.show or True:  # Add bbox to image(must)
                 c = int(cls)  # integer class
                 name = f'id:{int(d.id.item())} {self.model.names[c]}' if d.id is not None else self.model.names[c]
-                label = None if self.args.hide_labels else (name if self.args.hide_conf else f'{name} {conf:.2f}')
+                label = f'{name} {conf:.2f}'
                 self.annotator.box_label(d.xyxy.squeeze(), label, color=colors(c, True))
             if self.args.save_crop:
                 save_one_box(d.xyxy,
@@ -291,7 +311,6 @@ class YoloPredictor(BasePredictor, QObject):
                              BGR=True)
 
         return log_string
-        
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):
@@ -651,7 +670,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def ModelBoxRefre(self):
         pt_list = os.listdir('./models')
         pt_list = [file for file in pt_list if file.endswith('.pt')]
-        pt_list.sort(key=lambda x: os.path.getsize('./models/' + x))
         # It must be sorted before comparing, otherwise the list will be refreshed all the time
         if pt_list != self.pt_list:
             self.pt_list = pt_list
