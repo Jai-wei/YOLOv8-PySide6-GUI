@@ -34,6 +34,7 @@
 ## References
 - [PyQt5-YOLOv5](https://github.com/Javacr/PyQt5-YOLOv5)
 - [ultralytics](https://github.com/ultralytics/ultralytics)
+- [pyqt5仿交易软件界面](https://www.bilibili.com/video/BV1tg411Y7KH/?spm_id_from=333.999.0.0&vd_source=0940bf29b38efba56ccfc6a3cef8182d)
 
 ## 🛑Notice
 - This project has been discontinued for maintenance, and normal operation is not guaranteed. You can continue to refer to the following projects. Thanks to every open source contributor for their contribution.
