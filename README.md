@@ -34,3 +34,12 @@
 ## References
 - [PyQt5-YOLOv5](https://github.com/Javacr/PyQt5-YOLOv5)
 - [ultralytics](https://github.com/ultralytics/ultralytics)
+
+## 🛑Notice
+- This project has been discontinued for maintenance, and normal operation is not guaranteed. You can continue to refer to the following projects. Thanks to every open source contributor for their contribution.
+- 此项目已经停止维护，不保证仍能正常运行。您可以继续参考以下项目：
+- [Ultralytics-PySide6](https://github.com/WangQvQ/Ultralytics-PySide6)
+- [YOLOSHOW](https://github.com/SwimmingLiu/YOLOSHOW)
+- [yolov8客户端-简单修改](https://www.bilibili.com/video/BV1xh4y1F7sv/?spm_id_from=333.999.0.0&vd_source=0940bf29b38efba56ccfc6a3cef8182d)
+- [YOLOv8-GUI-PySide6](https://github.com/SuPoTing/YOLOv8-GUI-PySide6)
+- Please search for more projects on github yourself, all the best.
